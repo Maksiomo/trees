@@ -7,9 +7,21 @@ public class BinaryTree {
     private BinaryTree right = null;
     private int level;
 
-    public BinaryTree(int key, int level) {
+    public BinaryTree(int key) {
+        this.key = key;
+        this.level = 0;
+    }
+
+    private BinaryTree(int key, int level) {
         this.key = key;
         this.level = level;
+    }
+
+    public BinaryTree(int[] keys) {
+        this(keys[0]);
+        for(int i = 1; i < keys.length; i++){
+            this.addElement(keys[i]);
+        }
     }
 
     public void print() {
