@@ -2,35 +2,59 @@ package ru.zagarazhi;
 
 public class BPTree {
 
-    private class TreeNode {
-        public boolean isLeaf;
-        public int[] keys;
-        public int count;
-        public TreeNode[] child;
-        public TreeNode(int degree) {
-            this.isLeaf = false;
-            this.count = 0;
-            this.keys = new int[degree];
-            this.child = new TreeNode[degree + 1];
-        }
-    }
+	private class TreeNode {
+		public boolean isLeaf;
+		public int[] keys;
+		public int count;
+		public TreeNode[] child;
+		public int[] values;
+
+		public TreeNode(int degree) {
+			this.isLeaf = false;
+			this.count = 0;
+			this.keys = new int[degree];
+			this.values = new int[degree];
+			this.child = new TreeNode[degree + 1];
+		}
+
+		@Override
+		public String toString() {
+			return "isLeaf:" + isLeaf + "\n" + "count:" + count + "\n" + "keys:" + keys.toString() + "\n" + "values:"
+					+ values.toString()
+					+ "\n" + "isLeaf:" + child.toString() + "\n";
+		}
+	}
+
+	public class SearchOutput {
+		public int closest;
+		public int level;
+
+		public SearchOutput(int closest, int level) {
+			this.closest = closest;
+			this.level = level;
+		}
+	}
 
 	private TreeNode root;
 	private int degree;
 
+	public TreeNode getRoot() {
+		return this.root;
+	}
+
 	public BPTree(int degree) {
-		this.degree = degree;
+		this.degree = degree + 1;
 	}
 
 	private TreeNode findParent(TreeNode cursor, TreeNode child) {
 		TreeNode parent = null;
-		if (cursor.isLeaf| (cursor.child[0]).isLeaf) return null;
+		if (cursor.isLeaf | (cursor.child[0]).isLeaf)
+			return null;
 		for (int i = 0; i < cursor.count + 1; i++) {
 			if (cursor.child[i] == child) {
 				parent = cursor;
 				return parent;
-			}
-			else {
+			} else {
 				parent = findParent(cursor.child[i], child);
 				if (parent != null) {
 					return parent;
@@ -94,19 +118,19 @@ public class BPTree {
 				this.root.child[1] = newInternal;
 				this.root.isLeaf = false;
 				this.root.count = 1;
-			}
-			else {
+			} else {
 				insertInternal(cursor.keys[cursor.count], findParent(this.root, cursor), newInternal);
 			}
 		}
 	}
-	
-	public void insert(int x) {
+
+	public void insert(int x, int value) {
 		if (this.root == null) {
 			this.root = new TreeNode(this.degree);
 			this.root.isLeaf = true;
 			this.root.count = 1;
 			this.root.keys[0] = x;
+			this.root.values[0] = value;
 		} else {
 			int i = 0;
 			int j = 0;
@@ -134,15 +158,17 @@ public class BPTree {
 					cursor.keys[j] = cursor.keys[j - 1];
 				}
 				cursor.keys[i] = x;
+				cursor.values[i] = value;
 				cursor.count++;
 				cursor.child[cursor.count] = cursor.child[cursor.count - 1];
 				cursor.child[cursor.count - 1] = null;
-			}
-			else {
+			} else {
 				TreeNode newLeaf = new TreeNode(this.degree);
 				int[] virtualNode = new int[this.degree + 2];
+				int[] bufferValues = new int[this.degree + 2];
 				for (i = 0; i < this.degree; i++) {
 					virtualNode[i] = cursor.keys[i];
+					bufferValues[i] = cursor.values[i];
 				}
 				i = 0;
 				while (x > virtualNode[i] && i < this.degree) {
@@ -150,8 +176,10 @@ public class BPTree {
 				}
 				for (j = this.degree + 1; j > i; j--) {
 					virtualNode[j] = virtualNode[j - 1];
+					bufferValues[j] = bufferValues[j - 1];
 				}
 				virtualNode[i] = x;
+				bufferValues[i] = value;
 				newLeaf.isLeaf = true;
 				cursor.count = (this.degree + 1) / 2;
 				newLeaf.count = this.degree + 1 - (this.degree + 1) / 2;
@@ -160,9 +188,11 @@ public class BPTree {
 				cursor.child[this.degree] = null;
 				for (i = 0; i < cursor.count; i++) {
 					cursor.keys[i] = virtualNode[i];
+					cursor.values[i] = bufferValues[i];
 				}
 				for (i = 0, j = cursor.count; i < newLeaf.count; i++, j++) {
 					newLeaf.keys[i] = virtualNode[j];
+					newLeaf.values[i] = bufferValues[j];
 				}
 				if (cursor == this.root) {
 					TreeNode newRoot = new TreeNode(this.degree);
@@ -171,56 +201,100 @@ public class BPTree {
 					newRoot.child[1] = newLeaf;
 					newRoot.isLeaf = false;
 					newRoot.count = 1;
+					newRoot.values[0] = value;
 					this.root = newRoot;
-				}
-				else {
+				} else {
 					insertInternal(newLeaf.keys[0], parent, newLeaf);
 				}
 			}
 		}
+		// System.out.println("/////////////////////////////////////////// - Iteration "
+		// + x);
+		// print();
 	}
 
-    public void print() {
-        if(this.root != null) {
-            print(root, 0);
-        }
-    }
+	public void print() {
+		if (this.root != null) {
+			print(root, 0);
+		}
+	}
 
-    private void print(TreeNode node, int level) {
-        for(int i = 0; i < level; i++) {
-            System.out.print("\t");
-        }
-        System.out.print("[");
-        for(int i = 0; i < node.count; i++) {
-            System.out.print((i != 0) ? ", " + node.keys[i] : node.keys[i]);
-        }
-        System.out.println("]");
-        if(!node.isLeaf) {
-            for(int i = 0; i < node.count + 1; i++) {
-                print(node.child[i], level + 1);
-            }
-        }
-    }
+	private void print(TreeNode node, int level) {
+		for (int i = 0; i < level; i++) {
+			System.out.print("\t");
+		}
+		System.out.println("Level: " + level);
+		for (int i = 0; i < level; i++) {
+			System.out.print("\t");
+		}
+		System.out.print("[");
+		for (int i = 0; i < node.count; i++) {
+			if (node == root) {
+				System.out.print(
+						(i != 0) ? "; " + node.keys[i]
+								: node.keys[i]);
 
-    public void tour() {
-        if(this.root != null) {
-            tour(root);
-        }
-    }
+			} else {
+				System.out.print(
+						(i != 0) ? "; " + node.keys[i] + ", v: " + node.values[i]
+								: node.keys[i] + ", v: " + node.values[i]);
+			}
+		}
+		System.out.println("]");
+		if (!node.isLeaf) {
+			for (int i = 0; i < node.count + 1; i++) {
+				print(node.child[i], level + 1);
+			}
+		}
+	}
+
+	public void tour() {
+		if (this.root != null) {
+			tour(root);
+		}
+	}
 
 	private void tour(TreeNode node) {
 		int i = 0;
-        while (i < node.count) {
-            if (!node.isLeaf) {
-                tour(node.child[i]);
-            }
-            else {
-                System.out.print("  " + node.keys[i]);
-            }
-            i++;
-        }
-        if (!node.isLeaf) {
-            tour(node.child[i]);
-        }
+		while (i < node.count) {
+			if (!node.isLeaf) {
+				tour(node.child[i]);
+			} else {
+				System.out.print("  " + node.keys[i]);
+			}
+			i++;
+		}
+		if (!node.isLeaf) {
+			tour(node.child[i]);
+		}
+	}
+
+	private SearchOutput searchVer2(TreeNode node, int level, int number, SearchOutput out) {
+		if (node != null) {
+			for (int i = 0; i < node.count; i++) {
+				if (node != root) {
+					if ((node.values[i] > out.closest) && (node.values[i] < number)) {
+						out.closest = node.values[i];
+						out.level = level;
+					}
+					// System.out.println(out.closest + " " + out.level);
+				}
+			}
+		}
+		if ((node != null) && (!node.isLeaf || node.child[0] != null)) {
+			for (int i = 0; i < node.count + 1; i++) {
+				node.child[i].toString();
+				searchVer2(node.child[i], level + 1, number, out);
+			}
+		}
+		return out;
+	}
+
+	public SearchOutput searchVer2(int number) {
+		SearchOutput out = new SearchOutput(0, 0);
+		if (this.root != null) {
+			out = searchVer2(this.root, 0, number, out);
+		}
+		return out;
 	}
 }
