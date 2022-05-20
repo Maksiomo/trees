@@ -1,5 +1,6 @@
 package ru.zagarazhi;
 
+import java.io.Console;
 import java.util.Random;
 
 import ru.zagarazhi.BPTree.SearchOutput;
@@ -13,21 +14,23 @@ public class App {
             ra[i] = random.nextInt(151);
         }
         BinaryTree bt = new BinaryTree(ra);
-        bt.print();
-        bt.tour();
-        System.out.println("Искомое число: 123");
-        System.out.println("Ближайшее число, меньше или равное искомому: " +
-                bt.search(123).toString());
+        // bt.print();
+        // bt.tour();
+        // System.out.println("Искомое число: 123");
+        // System.out.println("Ближайшее число, меньше или равное искомому: " +
+        // bt.search(123).toString());
         BPTree bpt = new BPTree(5);
         for (int i = 0; i < 16; i++) {
-            bpt.insert(i + 1, ra[i]);
+            System.out.println(i);
+            bpt.insertVer2(i + 1, ra[i]);
         }
         // bpt.tour();
-        bpt.print();
-        SearchOutput searchRes = bpt.searchVer2(123);
-        System.out.println("Искомое число: 123");
-        System.out.println("Ближайшее число, меньше или равное искомому: значение - " + searchRes.closest
-                + ", находится на уровне: " + searchRes.level);
+        // bpt.print();
+        // SearchOutput searchRes = bpt.searchVer2(123);
+        // System.out.println("Искомое число: 123");
+        // System.out.println("Ближайшее число, меньше или равное искомому: значение - "
+        // + searchRes.closest
+        // + ", находится на уровне: " + searchRes.level);
 
     }
 }

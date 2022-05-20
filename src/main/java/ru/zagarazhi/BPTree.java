@@ -8,13 +8,16 @@ public class BPTree {
 		public int count;
 		public TreeNode[] child;
 		public int[] values;
+		public TreeNode next; // только для нижнего уровня
+		public TreeNode head; // ссылка на родителя
 
 		public TreeNode(int degree) {
 			this.isLeaf = false;
 			this.count = 0;
 			this.keys = new int[degree];
-			this.values = new int[degree];
+			this.values = new int[degree + 1];
 			this.child = new TreeNode[degree + 1];
+			this.next = null;
 		}
 
 		@Override
@@ -36,6 +39,7 @@ public class BPTree {
 	}
 
 	private TreeNode root;
+	// private TreeNode groundNode;
 	private int degree;
 
 	public TreeNode getRoot() {
@@ -43,7 +47,7 @@ public class BPTree {
 	}
 
 	public BPTree(int degree) {
-		this.degree = degree + 1;
+		this.degree = degree;
 	}
 
 	private TreeNode findParent(TreeNode cursor, TreeNode child) {
@@ -213,6 +217,57 @@ public class BPTree {
 		// print();
 	}
 
+	public void insertVer2(int insertKey, int value) {
+		if (this.root == null) {
+			this.root = new TreeNode(this.degree);
+			this.root.isLeaf = true;
+			this.root.count = 0;
+			this.root.keys[0] = insertKey;
+			this.root.values[0] = value;
+			this.root.child[0] = this.root;
+			this.root.head = null;
+			// this.groundNode = this.root; TODO: связь элементов по нижнему уровню, не
+			// обязательно, но было бы неплохл
+		} else if (this.root.count == this.degree - 1) {
+			insertBySplittingLeaf(this.root, insertKey, value);
+		} else {
+			TreeNode newRoot = new TreeNode(this.degree);
+			newRoot.isLeaf = true;
+			this.root.count++;
+			this.root.keys[this.root.count] = insertKey;
+			this.root.values[this.root.count] = value;
+			this.root.child[this.root.count] = newRoot;
+			this.root.child[this.root.count - 1].next = newRoot;
+			this.root.child[this.root.count].head = this.root.head;
+			// TreeNode temp = this.groundNode;
+			// while(temp.next != null) {
+			// temp = temp.next;
+			// }
+		}
+	}
+
+	private TreeNode insertBySplittingLeaf(TreeNode node, int insertKey, int value) {
+		TreeNode newRoot = node.child[this.degree / 2 + 1];
+		newRoot.isLeaf = false;
+		newRoot.count = 2;
+		newRoot.child[0] = this.root.child[0]; // 0, 1 элементы в первом
+		newRoot.child[1] = this.root.child[2]; // 2, 3, 4 элементы во второй
+		if (this.root.head != null) {
+			this.root.head.count++;
+			this.root.head.keys[this.root.head.count] = insertKey;
+			this.root.head.values[this.root.head.count] = value;
+			this.root.head.child[this.root.head.count] = newRoot;
+			this.root.head.child[this.root.head.count - 1].next = newRoot;
+			this.root.head.child[this.root.head.count].head = this.root.head.head;
+			this.root = this.root.head;
+			return this.root.head;
+		} else {
+			newRoot.head = null;
+			this.root = newRoot;
+			return newRoot; // возвращаем новую голову
+		}
+	}
+
 	public void print() {
 		if (this.root != null) {
 			print(root, 0);
@@ -252,6 +307,7 @@ public class BPTree {
 		if (this.root != null) {
 			tour(root);
 		}
+		System.out.println();
 	}
 
 	private void tour(TreeNode node) {
